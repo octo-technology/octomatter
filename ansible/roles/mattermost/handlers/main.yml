@@ -1,0 +1,7 @@
+---
+
+- name: restart mattermost
+  systemd:
+    name: mattermost
+    state: restarted
+    daemon_reload: true

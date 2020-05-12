@@ -1,0 +1,99 @@
+---
+
+- name: Ensure Python deps for Mysql are present
+  easy_install:
+    name: PyMySQL
+
+- name: Ensure deps are installed
+  yum:
+    name: libselinux-python
+
+- name: Create data filesystem
+  filesystem:
+    fstype: ext4
+    dev: "/dev/xvdh"
+
+- name: Ensure group "mattermost" exists
+  group:
+    name: mattermost
+    state: present
+
+- name: Ensure user "mattermost" exists
+  user:
+    name: mattermost
+    group: mattermost
+    system: true
+
+- name: Download mattermost archive
+  get_url:
+    url: "https://releases.mattermost.com/{{ mattermost_version }}/mattermost-{{ mattermost_version }}-linux-amd64.tar.gz"
+    dest: "/home/centos/mattermost-{{ mattermost_version }}-linux-amd64.tar.gz"
+  register: archive
+
+- name: Extract mattermost into /opt
+  unarchive:
+    src: "/home/centos/mattermost-{{ mattermost_version }}-linux-amd64.tar.gz"
+    dest: "{{ mattermost_install_dir }}"
+    remote_src: true
+  when: archive.changed
+
+- name: Create the mattermost data dir
+  file:
+    state: directory
+    path: "{{ mattermost_install_dir }}/mattermost/data"
+    owner: mattermost
+    group: mattermost
+    recurse: true
+    mode: "0755"
+
+- name: Mount data filesystem
+  mount:
+    path: "{{ mattermost_install_dir }}/mattermost/data"
+    src: "/dev/xvdh"
+    state: mounted
+    fstype: ext4
+
+- name: Ensure permissions on mattermost dir
+  file:
+    state: directory
+    path: "{{ mattermost_install_dir }}/mattermost"
+    owner: mattermost
+    group: mattermost
+    recurse: true
+    mode: "0755"
+
+- name: Setup mattermost configuration
+  template:
+    src: config.json.j2
+    dest: "{{ mattermost_install_dir }}/mattermost/config/config.json"
+
+- name: Create mattermost database
+  mysql_db:
+    login_host: "{{ mattermost_database_host }}"
+    login_user: "{{ mattermost_database_master_user }}"
+    login_password: "{{ mattermost_database_master_password }}"
+    name: "{{ mattermost_database_name }}"
+    state: present
+
+- name: Create database user
+  mysql_user:
+    login_host: "{{ mattermost_database_host }}"
+    login_user: "{{ mattermost_database_master_user }}"
+    login_password: "{{ mattermost_database_master_password }}"
+    name: "{{ mattermost_database_user }}"
+    password: "{{ mattermost_database_password }}"
+    priv: "{{ mattermost_database_name }}.*:ALL,GRANT"
+    host: "%"
+    state: present
+
+- name: Ensure systemd unit file is present
+  template:
+    src: mattermost.service.j2
+    dest: /lib/systemd/system/mattermost.service
+  notify:
+  - restart mattermost
+
+- name: Ensure mattermost is started
+  systemd:
+    name: mattermost
+    state: started

@@ -1,0 +1,6 @@
+- hosts: mattermost
+  become: true
+  tasks:
+  - name: Install Mattermost
+    import_role:
+      name: mattermost
