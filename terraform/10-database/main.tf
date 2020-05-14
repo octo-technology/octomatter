@@ -1,9 +1,3 @@
-resource "random_string" "random" {
-  length = 16
-  special = true
-  override_special = "/@£$"
-}
-
 module "aurora" {
   source                = "terraform-aws-modules/rds-aurora/aws"
   version               = "2.17.0"
@@ -54,6 +48,15 @@ resource "aws_security_group_rule" "allow_access" {
   to_port                  = module.aurora.this_rds_cluster_port
   protocol                 = "tcp"
   source_security_group_id = data.aws_security_group.app_servers.id
+  security_group_id        = module.aurora.this_security_group_id
+}
+
+resource "aws_security_group_rule" "allow_lambda" {
+  type                     = "ingress"
+  from_port                = module.aurora.this_rds_cluster_port
+  to_port                  = module.aurora.this_rds_cluster_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.lambda_rotation.id
   security_group_id        = module.aurora.this_security_group_id
 }
 
