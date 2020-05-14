@@ -2,3 +2,4 @@
 
 mattermost_cluster_name: "mattermost"
 mattermost_public_url: "http://mattermost.rrops.fr/"
+mattermost_database_master_password: "{{ (lookup('aws_secret', 'mattermost-rds-password') | from_json).password }}"

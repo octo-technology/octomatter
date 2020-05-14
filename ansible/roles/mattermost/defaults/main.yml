@@ -4,7 +4,7 @@ mattermost_version: 5.22.2
 mattermost_install_dir: /opt
 mattermost_database_driver: "mysql"
 mattermost_database_master_user: "root"
-mattermost_database_master_password: "PGYHUCFG6QI7ApW2"
+mattermost_database_master_password: "default_root_password"
 mattermost_database_user: "mmuser"
 mattermost_database_password: "default_password"
 mattermost_database_host: "127.0.0.1"
