@@ -1,4 +1,4 @@
 ---
 
-mattermost_database_host: "mattermost.cluster-cvg6lrtblynw.eu-west-1.rds.amazonaws.com"
+mattermost_cluster_name: "mattermost"
 mattermost_public_url: "http://mattermost.rrops.fr/"

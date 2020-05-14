@@ -1,6 +1,18 @@
 - hosts: mattermost
   become: true
   tasks:
+
+  - name: Get database cluster information
+    delegate_to: localhost
+    become: false
+    rds_cluster_info:
+      db_cluster_identifier: "{{ mattermost_cluster_name }}"
+    register: cluster_info
+
+  - name: Define the database host fact
+    set_fact:
+      mattermost_database_host: "{{ cluster_info.cluster.Endpoint }}"
+
   - name: Install Mattermost
     import_role:
       name: mattermost
